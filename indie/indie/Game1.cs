@@ -19,6 +19,8 @@ namespace IndieGame
         private Surface m_Surface;
         private Engine m_Engine;
 
+        private StateStack m_StateStack;
+
         private Entity m_MainCamera;
         private Entity m_Entity;
 
@@ -49,6 +51,9 @@ namespace IndieGame
         {
             m_ResourceManager = new ResourceManager(Content);
             m_FrameCounter = new FrameCounter();
+
+            m_StateStack = new StateStack();
+            //m_StateStack.Push(new State());
 
             // Engine
             m_Engine = new Engine();
@@ -115,11 +120,10 @@ namespace IndieGame
 
             // draw entities              
             var mainCamera = m_Engine.GetComponent<Camera>(m_MainCamera);
-            m_SpriteBatch.Begin(
-                SpriteSortMode.Deferred,
-                BlendState.AlphaBlend,
-                null, null, null, null,
-                mainCamera.ViewMatrix);
+            m_SpriteBatch.Begin(SpriteSortMode.Deferred,
+                                BlendState.AlphaBlend,
+                                null, null, null, null,
+                                mainCamera.ViewMatrix);
 
             m_Engine.Render(m_SpriteBatch);
             m_SpriteBatch.End();
