@@ -28,10 +28,7 @@ namespace IndieGame
         private int m_WindowHeight;
 
         private FrameCounter m_FrameCounter;
-        private int m_FrameCount;
         private SpriteFont m_SpriteFont;
-
-        private ResourceManager m_ResourceManager;
 
         public Game1()
         {
@@ -49,7 +46,7 @@ namespace IndieGame
 
         protected override void Initialize()
         {
-            m_ResourceManager = new ResourceManager(Content);
+            ResourceManager.Start(Content);
             m_FrameCounter = new FrameCounter();
 
             m_StateStack = new StateStack();
@@ -64,7 +61,7 @@ namespace IndieGame
 
             Transform transform = Transform.CreateTransform(Vector2.Zero, 0.0f, Vector2.One);
 
-            Texture2D texture = m_ResourceManager.Load<Texture2D>("block");
+            Texture2D texture = ResourceManager.Load<Texture2D>("block");
             Rectangle sourceRectangle = new Rectangle(0, 0, 32, 32);
             Color color = Color.White;
             float layerDepth = 0.0f;
@@ -84,7 +81,7 @@ namespace IndieGame
             // Surface
             m_Surface = new Surface();
 
-            m_SpriteFont = m_ResourceManager.Load<SpriteFont>("default");
+            m_SpriteFont = ResourceManager.Load<SpriteFont>("default");
 
             base.Initialize();
         }

@@ -22,19 +22,20 @@ namespace IndieGame.Common
         }
     }
 
-    public class ResourceManager
+    public static class ResourceManager
     {
-        private ContentManager m_Content;
-        private Dictionary<HashCode, List<Resource>> m_Resources;
+        private static ContentManager m_Content;
+        private static Dictionary<HashCode, List<Resource>> m_Resources = new Dictionary<HashCode, List<Resource>>();
 
-        public ResourceManager(ContentManager aContent)
+        public static void Start(ContentManager aContentManager)
         {
-            m_Content = aContent;
-            m_Resources = new Dictionary<HashCode, List<Resource>>();
+            m_Content = aContentManager;
         }
 
-        public T Load<T>(string aPath)
+        public static T Load<T>(string aPath)
         {
+            Debug.Assert(m_Content != null, "Content manager is null, did you forget to call ResourceManager.Start()?");
+            
             var typecode = typeof(T);
             var hashCode = typecode.GetHashCode();
 
@@ -58,8 +59,10 @@ namespace IndieGame.Common
             return data;
         }
 
-        public T[] LoadAll<T>(HashSet<string> aPath)
+        public static T[] LoadAll<T>(HashSet<string> aPath)
         {
+            Debug.Assert(m_Content != null, "Content manager is null, did you forget to call ResourceManager.Start()?");
+
             T[] returnValue = new T[aPath.Count];
 
             for (int i = 0; i < aPath.Count; i++)
