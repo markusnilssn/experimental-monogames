@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,11 +27,14 @@ namespace IndieGame.Common
     public static class ResourceManager
     {
         private static ContentManager m_Content;
+        private static GraphicsDevice m_GraphicsDevice;
+
         private static Dictionary<HashCode, List<Resource>> m_Resources = new Dictionary<HashCode, List<Resource>>();
 
-        public static void Start(ContentManager aContentManager)
+        public static void Start(ContentManager aContentManager, GraphicsDevice aGraphicsDevice)
         {
             m_Content = aContentManager;
+            m_GraphicsDevice = aGraphicsDevice;
         }
 
         public static T Load<T>(string aPath)
@@ -50,11 +54,9 @@ namespace IndieGame.Common
             Resource resource = m_Resources[hashCode].Find(predicate);
             if (resource != null)
             {
-                Debug.WriteLine("Cached resource found, returning cached resource.");
                 return (T)resource.Data;
             }
 
-            Debug.WriteLine("Cached resource not found, loading new resource.");
             T data = m_Content.Load<T>(aPath);
             m_Resources[hashCode].Add(new Resource(aPath, data));
             return data;
@@ -106,8 +108,8 @@ namespace IndieGame.Common
 
             return secondIndieDirectory;
         }
-        public static string GetAssetFolder() => Path.Combine(GetRootDirectory(), "Assets");
 
+        public static string GetAssetFolder() => Path.Combine(GetRootDirectory(), "Assets");
         public static string GetFilePath(string aFilePath) => Path.Combine(GetRootDirectory(), aFilePath);
     }
 }

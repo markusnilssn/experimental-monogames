@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Content;
 using System.IO;
 using System;
 using System.Xml;
+using System.Transactions;
 
 namespace IndieGame
 {
@@ -50,15 +51,25 @@ namespace IndieGame
 
         protected override void Initialize()
         {
-            ResourceManager.Start(Content);
+            ResourceManager.Start(Content, GraphicsDevice);
+
+            AsciiLoader loader = new AsciiLoader(GraphicsDevice);
+            loader.Load();
+
+
+
             m_FrameCounter = new FrameCounter();
 
+         
             m_StateStack = new StateStack();
             //m_StateStack.Push(new State());
 
             // Engine
             m_Engine = new Engine();
             m_Engine.RegisterSystem<RenderSystem>();
+
+
+            CreateGrid();
 
             // Test Entity
             m_Entity = m_Engine.CreateEntity();
@@ -67,7 +78,7 @@ namespace IndieGame
 
             Texture2D texture = ResourceManager.Load<Texture2D>("block");
             Rectangle sourceRectangle = new Rectangle(0, 0, 32, 32);
-            Color color = Color.White;
+            Color color = Color.Yellow;
             float layerDepth = 0.0f;
             Sprite sprite = Sprite.CreateSprite(texture, sourceRectangle, color, layerDepth);
 
@@ -98,6 +109,34 @@ namespace IndieGame
             }
 
             base.Initialize();
+        }
+
+        private void CreateGrid()
+        {
+           
+            const int kSpriteSize = 32;
+
+            const int kRows = 16;
+            const int kColumns = 16;
+
+            for (int i = 0; i < kRows; i++)
+            {
+                for (int j = 0; j < kColumns; j++)
+                {
+                    var entity = m_Engine.CreateEntity();
+
+                    Transform transform = Transform.CreateTransform(new Vector2(kSpriteSize * i, kSpriteSize * j), 0.0f, Vector2.One);
+
+                    Texture2D texture = ResourceManager.Load<Texture2D>("block");
+                    Rectangle sourceRectangle = new Rectangle(0, 0, 32, 32);
+                    Color color = Color.White;
+                    float layerDepth = 0.0f;
+                    Sprite sprite = Sprite.CreateSprite(texture, sourceRectangle, color, layerDepth);
+
+                    m_Engine.AddComponent(entity, transform);
+                    m_Engine.AddComponent(entity, sprite);
+                }
+            }
         }
 
         protected override void LoadContent()
