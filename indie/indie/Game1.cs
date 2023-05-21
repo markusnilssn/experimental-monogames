@@ -3,11 +3,13 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using IndieGame.Common;
-using System.Collections.Generic;
+using IndieGame.Indie;
+
+using System.Diagnostics;
+using Microsoft.Xna.Framework.Content;
 using System.IO;
 using System;
-using System.ComponentModel;
-using System.Diagnostics;
+using System.Xml;
 
 namespace IndieGame
 {
@@ -67,8 +69,8 @@ namespace IndieGame
             float layerDepth = 0.0f;
             Sprite sprite = Sprite.CreateSprite(texture, sourceRectangle, color, layerDepth);
 
+            m_Engine.AddComponent(m_Entity, transform);
             m_Engine.AddComponent(m_Entity, sprite);
-            m_Engine.AddComponent(m_Entity, transform );
 
             // Camera
             m_Engine.RegisterSystem<CameraSystem>();
@@ -82,6 +84,16 @@ namespace IndieGame
             m_Surface = new Surface();
 
             m_SpriteFont = ResourceManager.Load<SpriteFont>("default");
+
+            var assetFolder = ResourceManager.GetAssetFolder();
+            var filePath = Path.Combine(assetFolder, "WindowLayout.xml");
+            
+            UIDocument document = new UIDocument(filePath);
+            Debug.WriteLine("Element Size:"  + document.ElementCount);
+            foreach (var item in document.GetElements())
+            {
+                Debug.WriteLine("item:" + item.Name);
+            }
 
             base.Initialize();
         }

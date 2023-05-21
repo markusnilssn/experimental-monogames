@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -74,5 +75,39 @@ namespace IndieGame.Common
 
             return returnValue;
         }
+
+        public static string GetRootDirectory()
+        {
+            //C:\Users\makiswag\Documents\GitHub\experimental-monogames\indie\indie\bin\Debug\net6.0
+            var rootFolder = Environment.CurrentDirectory;
+            string searchDirectory = "indie";
+            
+            string[] directories = rootFolder.Split('\\');
+
+            int count = 0;
+            string secondIndieDirectory = null;
+
+            for (int i = 0; i < directories.Length; i++)
+            {
+                if (directories[i] == searchDirectory)
+                {
+                    count++;
+                    if (count == 2)
+                    {
+                        secondIndieDirectory = string.Join("\\", directories, 0, i + 1);
+                        break;
+                    }
+                }
+            }
+            if(secondIndieDirectory == null)
+            {
+                throw new Exception("Second 'indie' directory not found.");
+            }
+
+            return secondIndieDirectory;
+        }
+        public static string GetAssetFolder() => Path.Combine(GetRootDirectory(), "Assets");
+
+        public static string GetFilePath(string aFilePath) => Path.Combine(GetRootDirectory(), aFilePath);
     }
 }
