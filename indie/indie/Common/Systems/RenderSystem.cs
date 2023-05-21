@@ -28,8 +28,6 @@ namespace IndieGame.Common
         public override void Update(GameTime aGameTime) { }
         public override void Render(SpriteBatch aRenderer)
         {
-            Debug.WriteLine(m_Entities.Count);
-
             foreach (Entity entity in m_Entities)
             {
                 Debug.Assert(entity != null, $"Entity {entity.ToString()} is null.");
