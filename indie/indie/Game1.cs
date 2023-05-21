@@ -32,6 +32,8 @@ namespace IndieGame
         private FrameCounter m_FrameCounter;
         private SpriteFont m_SpriteFont;
 
+        private UIDocument m_Document;
+
         public Game1()
         {
             m_Graphics = new GraphicsDeviceManager(this);
@@ -87,10 +89,10 @@ namespace IndieGame
 
             var assetFolder = ResourceManager.GetAssetFolder();
             var filePath = Path.Combine(assetFolder, "WindowLayout.xml");
-            
-            UIDocument document = new UIDocument(filePath);
-            Debug.WriteLine("Element Size:"  + document.ElementCount);
-            foreach (var item in document.GetElements())
+
+            m_Document = new UIDocument(filePath);
+            Debug.WriteLine("Element Size:"  + m_Document.ElementCount);
+            foreach (var item in m_Document.GetElements())
             {
                 Debug.WriteLine("item:" + item.Name);
             }
