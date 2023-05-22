@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Xml.Serialization;
 
 namespace IndieGame.Common
 {
-    public sealed class XMLConvert : IConvert
+    public partial class XMLConvert : IConvert
     {
         public void Serialize<T>(string aFilePath, T aData)
         {
@@ -29,5 +30,6 @@ namespace IndieGame.Common
                 return (T)serializer.Deserialize(reader);
             }
         }
+
     }
 }

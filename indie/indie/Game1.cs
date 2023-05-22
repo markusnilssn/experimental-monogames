@@ -69,7 +69,7 @@ namespace IndieGame
             m_Engine.RegisterSystem<RenderSystem>();
 
 
-            CreateGrid();
+            // CreateGrid();
 
             // Test Entity
             m_Entity = m_Engine.CreateEntity();

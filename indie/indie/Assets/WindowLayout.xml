@@ -1,4 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<document name="mainWindow" size="{128, 128}">
-	<element name="element" texture="block" position="{0.5, 0.5}" color="{255,255,255,255}"></element>
+<document name="mainWindow" size="{window.width, window.height}">
+	<element name="element" texture="block" position="{0.5, 0.5}" scale="{1,1}" >
+		<element name="child1" texture="block" position="{0.5, 0.5}" scale="{parent.width, parent.height}"/>
+	</element>
 </document>

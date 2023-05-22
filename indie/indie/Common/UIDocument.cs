@@ -25,6 +25,11 @@ namespace IndieGame.Common
         {
             m_Elements.Add(aElement);
         }
+        public void AddElements(List<UIElement> aElement)
+        {
+            m_Elements.AddRange(aElement);
+        }
+
 
         public void RemoveElement(UIElement aElement)
         {
@@ -129,156 +134,66 @@ namespace IndieGame.Common
             XmlDocument document = new XmlDocument();
             document.Load(aPath);
 
+            // Parse document
             XmlElement xmlDocment = document.DocumentElement;
 
-            m_Name = ParseString(xmlDocment.GetAttribute("name"));
-            m_Size = ParseVector2(xmlDocment.GetAttribute("size"));
+            m_Name = XMLConvert.ParseString(xmlDocment.GetAttribute("name"));
+            m_Size = XMLConvert.ParseVector2(xmlDocment.GetAttribute("size"));
 
             // Parse Elements
+            
+            // RECURSIVE PLEASE
             XmlNodeList elementNodes = document.SelectNodes("/document/element");
-            foreach (XmlNode elementNode in elementNodes)
+
+            var elements = ParseElements(elementNodes);
+
+            AddElements(elements);
+
+
+            return true;
+        }
+
+
+        private List<UIElement> ParseElements(XmlNodeList aElementNodes)
+        {
+            if (aElementNodes == null)
+                return null;
+
+            List<UIElement> returnValue = new List<UIElement>();
+            foreach (XmlNode elementNode in aElementNodes)
             {
-                if (elementNode is not XmlElement)
+                if (elementNode is not XmlElement xmlElement)
                 {
                     Debug.WriteLine("Element is not an XmlElement");
                     continue;
                 }
 
-                XmlElement xmlElement = elementNode as XmlElement;
-                UIElement element = ParseElement(xmlElement);
-                AddElement(element);
+                UIElement element = CreateElement(xmlElement);
+                if(element == null)
+                {
+                    Debug.WriteLine("Failed to create element");
+                    continue;
+                }
+
+                element.AddElements(ParseElements(elementNode.ChildNodes));
             }
 
-            return true;
+            return returnValue;
         }
 
-        private UIElement ParseElement(XmlElement aXmlElement)
+        private UIElement CreateElement(XmlElement aXmlElement)
         {
             Dictionary<string, string> attributes = ParseElementAttributes(aXmlElement);
 
-            string name = ParseString(attributes["name"]);
-            string texture = ParseString(attributes["texture"]);
-            Vector2 position = ParseVector2(attributes["position"]);
-            Color color = ParseColor(attributes["color"]);
+            string name = XMLConvert.ParseString(attributes["name"]);
+            string texture = XMLConvert.ParseString(attributes["texture"]);
+            Vector2 position = XMLConvert.ParseVector2(attributes["position"]);
+            Vector2 scale = XMLConvert.ParseVector2(attributes["scale"]);
+            Color color = XMLConvert.ParseColor(attributes["color"]);
 
             Debug.WriteLine("Element: " + name + " " + texture + " " + position + " " + color);
 
-            return new UIElement();
-        }
-
-        private static float ParseFloat(string aAttribute) 
-        { 
-            if(string.IsNullOrEmpty(aAttribute))
-            {
-                return 0.0f;
-            }
-
-            if(aAttribute.Contains(','))
-            {
-                throw new Exception("We use dots in our floats, not commas!");
-            }
-             
-            if(aAttribute.Contains('.'))
-            {
-                aAttribute = aAttribute.Replace('.', ',');
-            }
-
-            return float.Parse(aAttribute);
-        }
-        
-        private static int ParseInt(string aAttribute) 
-        {
-            if (string.IsNullOrEmpty(aAttribute))
-            {
-                return 0;
-            }
-
-            if (aAttribute.Contains(',') || aAttribute.Contains('.'))
-            {
-                throw new Exception("We don't use commas or dots in our ints!");
-            }
-
-            return int.Parse(aAttribute);
-        }
-        
-        private static string ParseString(string aAttribute) 
-        {
-            return aAttribute;
-        }
-
-        private static Vector2 ParseVector2(string aAttribute) 
-        {
-            if (string.IsNullOrEmpty(aAttribute))
-            {
-                return Vector2.One;
-            }
-
-            aAttribute = aAttribute.Trim('{', '}'); // Remove curly braces
-            string[] components = aAttribute.Split(',');
-
-            if (components.Length != 2)
-            {
-                throw new FormatException("Invalid Vector2 format.");
-            }
-
-            float x = ParseFloat(components[0]);
-            float y = ParseFloat(components[1]);
-
-            return new Vector2(x, y);
-        }
-        private static Vector3 ParseVector3(string aAttribute) 
-        {
-            if (string.IsNullOrEmpty(aAttribute))
-            {
-                return Vector3.One;
-            }
-
-            aAttribute = aAttribute.Trim('{', '}'); // Remove curly braces
-            string[] components = aAttribute.Split(',');
-
-            if (components.Length != 3)
-            {
-                throw new FormatException("Invalid Vector3 format.");
-            }
-
-            float x = ParseFloat(components[0]);
-            float y = ParseFloat(components[1]);
-            float z = ParseFloat(components[2]);
-
-            return new Vector3(x, y, z);
-        }
-        private static Vector4 ParseVector4(string aAttribute) 
-        {
-            if (string.IsNullOrEmpty(aAttribute))
-            {
-                return Vector4.One;
-            }
-
-            aAttribute = aAttribute.Trim('{', '}'); // Remove curly braces
-            string[] components = aAttribute.Split(',');
-
-            if (components.Length != 4)
-            {
-                throw new FormatException("Invalid Vector4 format.");
-            }
-
-            float x = ParseFloat(components[0]);
-            float y = ParseFloat(components[1]);
-            float z = ParseFloat(components[2]);
-            float w = ParseFloat(components[3]);
-
-            return new Vector4(x, y, z, w);
-        }
-        private static Color ParseColor(string aAttribute)
-        {
-            if (string.IsNullOrEmpty(aAttribute))
-            {
-                return Color.HotPink; // ;) 
-            }
-
-            Vector4 vector = ParseVector4(aAttribute);
-
-            return new Color(vector.X, vector.Y, vector.Z, vector.W);
+            return UIElement.CreateElement(texture, position, scale);
         }
 
         private static Dictionary<string, string> ParseElementAttributes(XmlElement element)
