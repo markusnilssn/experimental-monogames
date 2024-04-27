@@ -24,6 +24,20 @@ namespace IndieGame.Common
         }
     }
 
+    public class TileSet
+    {
+        public Texture2D Texture { get; private set; }
+        public int TileWidth { get; private set; }
+        public int TileHeight { get; private set; }
+
+        public TileSet(Texture2D aTexture, int aTileWidth, int aTileHeight)
+        {
+            Texture = aTexture;
+            TileWidth = aTileWidth;
+            TileHeight = aTileHeight;
+        }
+    }
+
     public static class ResourceManager
     {
         private static ContentManager m_Content;

@@ -78,6 +78,34 @@ namespace IndieGame.Common
 
     public class UIDocument : UIContainer
     {
+        private class AttributeTable
+        {
+            public Dictionary<string, string> collection = new Dictionary<string, string>();
+
+            public void Add(string aKey, string aValue)
+            {
+                collection.Add(aKey, aValue);
+            }
+
+            public string Get(string aKey)
+            {
+                bool contains = collection.ContainsKey(aKey);
+                if (!contains)
+                {
+                    return null;
+                }
+
+                return collection[aKey];
+            }
+
+            // override operator []
+            public string this[string aKey]
+            {
+                get => Get(aKey);
+                set => Add(aKey, value);
+            }
+        }
+
         public delegate void DocumentChangedCallback();
         public DocumentChangedCallback OnDocumentChanged;
 
@@ -86,16 +114,14 @@ namespace IndieGame.Common
         private string m_Name;
         private Vector2 m_Size;
 
-        public UIDocument(string aFilePath)
+        private GraphicsDeviceManager m_Graphics;
+
+        public UIDocument(string aFilePath, GraphicsDeviceManager aGraphics)
         {
+            m_Graphics = aGraphics;
 
             ParseDocument(aFilePath);
             WatchFilePath(aFilePath);
-        }
-
-        ~UIDocument()
-        {
-
         }
 
         private void WatchFilePath(string aFilePath)
@@ -129,19 +155,70 @@ namespace IndieGame.Common
             }
         }
 
+
         private bool ParseDocument(string aPath)
         {
             XmlDocument document = new XmlDocument();
             document.Load(aPath);
 
             // Parse document
-            XmlElement xmlDocment = document.DocumentElement;
+            XmlElement xmlDocument = document.DocumentElement;
+            m_Name = XMLConvert.ParseString(xmlDocument.GetAttribute("name"));
 
-            m_Name = XMLConvert.ParseString(xmlDocment.GetAttribute("name"));
-            m_Size = XMLConvert.ParseVector2(xmlDocment.GetAttribute("size"));
+            try
+            {
+                m_Size = XMLConvert.ParseVector2(xmlDocument.GetAttribute("size"));
+            }
+            catch (Exception e)
+            {
+                void ParseComponent(string aComponent, out float aResult)
+                {
+                    if (!float.TryParse(aComponent, out aResult))
+                    {
+                        Debug.WriteLine("Failed to parse component: " + aComponent);
+                        aResult = 0;
+                    }
+
+                    if(aComponent.Contains("window"))
+                    {
+                        var split = aComponent.Split('.');
+                        if (split.Length != 2)
+                        {
+                            Debug.WriteLine("Failed to parse window: " + aComponent);
+                            return;
+                        }
+
+                        var resolution = split[1];
+                        if(resolution == "width")
+                        {
+                            aResult = m_Graphics.PreferredBackBufferWidth;
+                        }
+                        else if (resolution == "height")
+                        {
+                            aResult = m_Graphics.PreferredBackBufferHeight;
+                        }
+                    } 
+                    else if (aComponent.Contains("parent"))
+                    {
+
+                    } 
+                }
+
+                var attribute = xmlDocument.GetAttribute("size");
+                string[] components = attribute.Split(',');
+
+                if (components.Length != 2)
+                {
+                    Debug.WriteLine("Failed to parse size: " + attribute);
+                    return false;
+                }
+
+                ParseComponent(components[0], out float x);
+                ParseComponent(components[1], out float y);
+            }
 
             // Parse Elements
-            
+
             // RECURSIVE PLEASE
             XmlNodeList elementNodes = document.SelectNodes("/document/element");
 
@@ -149,6 +226,7 @@ namespace IndieGame.Common
 
             AddElements(elements);
 
+ 
 
             return true;
         }
@@ -183,12 +261,12 @@ namespace IndieGame.Common
 
         private UIElement CreateElement(XmlElement aXmlElement)
         {
-            Dictionary<string, string> attributes = ParseElementAttributes(aXmlElement);
+            AttributeTable attributes = ParseElementAttributes(aXmlElement);
 
             string name = XMLConvert.ParseString(attributes["name"]);
             string texture = XMLConvert.ParseString(attributes["texture"]);
             Vector2 position = XMLConvert.ParseVector2(attributes["position"]);
-            Vector2 scale = XMLConvert.ParseVector2(attributes["scale"]);
+            Vector2 scale = XMLConvert.ParseVector2(attributes["size"]);
             Color color = XMLConvert.ParseColor(attributes["color"]);
 
             Debug.WriteLine("Element: " + name + " " + texture + " " + position + " " + color);
@@ -196,12 +274,12 @@ namespace IndieGame.Common
             return UIElement.CreateElement(texture, position, scale);
         }
 
-        private static Dictionary<string, string> ParseElementAttributes(XmlElement element)
+        private static AttributeTable ParseElementAttributes(XmlElement element)
         {
             if (!element.HasAttributes)
-                return new Dictionary<string, string>();
+                return new AttributeTable();
 
-            Dictionary<string, string> attributes = new Dictionary<string, string>();
+            AttributeTable attributes = new AttributeTable();
             foreach (XmlAttribute attribute in element.Attributes)
             {
                 attributes.Add(attribute.Name, attribute.Value);

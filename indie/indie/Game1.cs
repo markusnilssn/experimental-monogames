@@ -56,8 +56,6 @@ namespace IndieGame
             AsciiLoader loader = new AsciiLoader(GraphicsDevice);
             loader.Load();
 
-
-
             m_FrameCounter = new FrameCounter();
 
          
@@ -98,15 +96,17 @@ namespace IndieGame
 
             m_SpriteFont = ResourceManager.Load<SpriteFont>("default");
 
-            var assetFolder = ResourceManager.GetAssetFolder();
-            var filePath = Path.Combine(assetFolder, "WindowLayout.xml");
+            //var assetFolder = ResourceManager.GetAssetFolder();
+            //var filePath = Path.Combine(assetFolder, "WindowLayout.xml");
 
-            m_Document = new UIDocument(filePath);
-            Debug.WriteLine("Element Size:"  + m_Document.ElementCount);
-            foreach (var item in m_Document.GetElements())
-            {
-                Debug.WriteLine("item:" + item.Name);
-            }
+            //m_Document = new UIDocument(filePath, m_Graphics);
+            //Debug.WriteLine("Element Size:" + m_Document.ElementCount);
+            //foreach (var item in m_Document.GetElements())
+            //{
+            //    Debug.WriteLine("item:" + item.Name);
+            //}
+
+
 
             base.Initialize();
         }
@@ -174,6 +174,7 @@ namespace IndieGame
                                 BlendState.AlphaBlend,
                                 null, null, null, null,
                                 mainCamera.ViewMatrix);
+
 
             m_Engine.Render(m_SpriteBatch);
             m_SpriteBatch.End();

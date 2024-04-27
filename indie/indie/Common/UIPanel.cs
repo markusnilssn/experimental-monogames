@@ -34,7 +34,6 @@ namespace IndieGame.Common
 
         public override void Render(SpriteBatch aRenderer)
         {
-            
         }
     }
 }

@@ -19,13 +19,13 @@ namespace IndieGame.Common
                 m_Data = new Dictionary<string, (Type, object)>();
             }
 
-            public void Push<T>(string akey, T value)
+            public void Push<T>(string aKey, T value)
             {
                 Type type = typeof(T);
-                m_Data.Add(akey, (type, value));
+                m_Data.Add(aKey, (type, value));
             }
 
-            public void Push(string akey, MetaData aValue)
+            public void Push(string aKey, MetaData aValue)
             {
                 m_Children.Add(aValue);
             }

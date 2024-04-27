@@ -13,7 +13,7 @@ namespace IndieGame.Common
         {
             if (string.IsNullOrEmpty(aAttribute))
             {
-                return 0.0f;
+               return 0.0f;
             }
 
             if (aAttribute.Contains(','))
@@ -21,12 +21,18 @@ namespace IndieGame.Common
                 throw new Exception("We use dots in our floats, not commas!");
             }
 
-            if (aAttribute.Contains('.'))
+            if(aAttribute.Contains('f'))
             {
-                aAttribute = aAttribute.Replace('.', ',');
+                aAttribute = aAttribute.Replace('f', ' ');
             }
 
-            return float.Parse(aAttribute);
+            bool success = float.TryParse(aAttribute, out float result);
+            if (!success)
+            {
+                throw new FormatException("Invalid float format.");
+            }
+
+            return result;
         }
 
         public static int ParseInt(string aAttribute)
@@ -41,13 +47,34 @@ namespace IndieGame.Common
                 throw new Exception("We don't use commas or dots in our ints!");
             }
 
-            return int.Parse(aAttribute);
-        }
+            bool success = int.TryParse(aAttribute, out int result);
+            if (!success)
+            {
+                throw new FormatException("Invalid int format.");
+            }
 
+            return result;
+        }
 
         public static string ParseString(string aAttribute)
         {
             return aAttribute;
+        }
+
+        public static bool ParseBool(string aAttribute)
+        {
+            if (string.IsNullOrEmpty(aAttribute))
+            {
+                throw new FormatException("Invalid bool format.");
+            }
+
+            bool success = bool.TryParse(aAttribute, out bool result);
+            if (!success)
+            {
+                throw new FormatException("Invalid bool format.");
+            }
+
+            return result;
         }
 
         public static Vector2 ParseVector2(string aAttribute)
@@ -91,6 +118,7 @@ namespace IndieGame.Common
 
             return new Vector3(x, y, z);
         }
+
         public static Vector4 ParseVector4(string aAttribute)
         {
             if (string.IsNullOrEmpty(aAttribute))
@@ -120,10 +148,18 @@ namespace IndieGame.Common
                 return Color.HotPink; // ;) 
             }
 
+            if (aAttribute.Contains("Color"))
+            {
+                var components = aAttribute.Split('.');
+
+                var color = components[1];
+
+                return Enum.TryParse(color, out Color result) ? result : Color.HotPink;
+            }
+
             Vector4 vector = ParseVector4(aAttribute);
 
             return new Color(vector.X, vector.Y, vector.Z, vector.W);
         }
-
     }
 }
