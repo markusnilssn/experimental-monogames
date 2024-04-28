@@ -41,6 +41,11 @@ namespace IndieGame.Common
             }
         }
 
+        public void AddLayer(Depth aDepth, Layer aLayer)
+        {
+            m_Layers[aDepth].Add(aLayer);
+        }
+
         public virtual void Start() { }
         public virtual void Destroy() { }
 
@@ -55,8 +60,9 @@ namespace IndieGame.Common
             }
         }
 
-        public virtual void Render(SpriteBatch aRenderer) {
-            
+        public virtual void Render(SpriteBatch aRenderer) 
+        {
+                   
             foreach (var (depth, layers) in m_Layers)
             {
                 foreach (var layer in layers)

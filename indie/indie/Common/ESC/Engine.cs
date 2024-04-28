@@ -146,7 +146,14 @@ namespace IndieGame.Common
         }
 
         // Systems
-        public void RegisterSystem<SystemT>() where SystemT : System
+        // add args to register system
+
+        public void RegisterSaticSystem<SystemT>() where SystemT : System
+        {
+            RegisterSystem<SystemT>();
+        }
+
+        public void RegisterSystem<SystemT>(params object[] args) where SystemT : System
         {
             var type = typeof(SystemT);
             HashCode hashCode = type.GetHashCode();
@@ -157,7 +164,15 @@ namespace IndieGame.Common
                 throw new Exception("System already registered");
             }
 
-            SystemT system = (SystemT)Activator.CreateInstance(type, this);
+            var arguments = new List<object>();
+            arguments.Add(this);
+            if(args != null)
+            {
+                arguments.AddRange(args);
+            }
+            
+
+            SystemT system = (SystemT)Activator.CreateInstance(type, arguments.ToArray());
             m_Dependencies.Add(hashCode, system.Requirements); // add signatures 
 
             m_Systems.Add(hashCode, system);

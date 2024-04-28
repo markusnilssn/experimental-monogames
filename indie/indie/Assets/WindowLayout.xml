@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <document name="mainWindow" size="{window.width, window.height}">
-	<element name="element" texture="block" position="{0.5f, 0.5f}" size="{1,1}" >
-		<element name="child1" texture="block" position="{0.5f, 0.5f}" size="{parent.width, parent.height}" color="Color.White"/>
+	<element name="element" texture="block" position="{0.5f, 0.5f}" size="{parent.width, parent.height}" >
+		<element name="child1" texture="block" position="{0.5f, 0.5f}" size="{1.0f, 1.0f}" color="Color.White"/>
+		<element name="child2" texture="block" position="{0.8f, 0.8f}" size="{1.0f, 1.0f}" color="Color.Blue"/>
 	</element>
 </document>

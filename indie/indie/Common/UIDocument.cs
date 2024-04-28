@@ -30,7 +30,6 @@ namespace IndieGame.Common
             m_Elements.AddRange(aElement);
         }
 
-
         public void RemoveElement(UIElement aElement)
         {
             m_Elements.Remove(aElement);
@@ -114,14 +113,19 @@ namespace IndieGame.Common
         private string m_Name;
         private Vector2 m_Size;
 
-        private GraphicsDeviceManager m_Graphics;
+        private string m_FilePath;
 
-        public UIDocument(string aFilePath, GraphicsDeviceManager aGraphics)
+        private Viewport m_Viewport;
+
+        public UIDocument(string aFilePath, Viewport aViewport)
         {
-            m_Graphics = aGraphics;
+            m_Viewport = aViewport;
 
             ParseDocument(aFilePath);
+
+#if DEBUG
             WatchFilePath(aFilePath);
+#endif
         }
 
         private void WatchFilePath(string aFilePath)
@@ -139,9 +143,14 @@ namespace IndieGame.Common
             Debug.WriteLine("Watching file: " + fileName);
         }
 
+        public void Rebuild()
+        {
+            ParseDocument(m_FilePath);
+        }
+
         private void OnFileChanged(object sender,FileSystemEventArgs e)
         {
-            Debug.WriteLine("File Changesd: " + e.FullPath);
+            Debug.WriteLine("File Changed: " + e.FullPath);
             List<UIElement> copyOfList = new List<UIElement>(GetElements());
             Clear();
             bool success = ParseDocument(e.FullPath);
@@ -155,67 +164,19 @@ namespace IndieGame.Common
             }
         }
 
-
         private bool ParseDocument(string aPath)
         {
+            Debug.WriteLine("Parsing document: " + aPath);
+
             XmlDocument document = new XmlDocument();
             document.Load(aPath);
 
             // Parse document
             XmlElement xmlDocument = document.DocumentElement;
             m_Name = XMLConvert.ParseString(xmlDocument.GetAttribute("name"));
+            m_Size = ParseSize(xmlDocument.GetAttribute("size"));
 
-            try
-            {
-                m_Size = XMLConvert.ParseVector2(xmlDocument.GetAttribute("size"));
-            }
-            catch (Exception e)
-            {
-                void ParseComponent(string aComponent, out float aResult)
-                {
-                    if (!float.TryParse(aComponent, out aResult))
-                    {
-                        Debug.WriteLine("Failed to parse component: " + aComponent);
-                        aResult = 0;
-                    }
-
-                    if(aComponent.Contains("window"))
-                    {
-                        var split = aComponent.Split('.');
-                        if (split.Length != 2)
-                        {
-                            Debug.WriteLine("Failed to parse window: " + aComponent);
-                            return;
-                        }
-
-                        var resolution = split[1];
-                        if(resolution == "width")
-                        {
-                            aResult = m_Graphics.PreferredBackBufferWidth;
-                        }
-                        else if (resolution == "height")
-                        {
-                            aResult = m_Graphics.PreferredBackBufferHeight;
-                        }
-                    } 
-                    else if (aComponent.Contains("parent"))
-                    {
-
-                    } 
-                }
-
-                var attribute = xmlDocument.GetAttribute("size");
-                string[] components = attribute.Split(',');
-
-                if (components.Length != 2)
-                {
-                    Debug.WriteLine("Failed to parse size: " + attribute);
-                    return false;
-                }
-
-                ParseComponent(components[0], out float x);
-                ParseComponent(components[1], out float y);
-            }
+            Debug.WriteLine("Document Size: " + m_Size);
 
             // Parse Elements
 
@@ -223,10 +184,12 @@ namespace IndieGame.Common
             XmlNodeList elementNodes = document.SelectNodes("/document/element");
 
             var elements = ParseElements(elementNodes);
+            if (elements != null)
+            {
+                Debug.WriteLine("Parsed " + elements.Count + " elements");
+                AddElements(elements);
+            }
 
-            AddElements(elements);
-
- 
 
             return true;
         }
@@ -235,7 +198,10 @@ namespace IndieGame.Common
         private List<UIElement> ParseElements(XmlNodeList aElementNodes)
         {
             if (aElementNodes == null)
+            {
+                Debug.WriteLine("Element nodes is null");
                 return null;
+            }
 
             List<UIElement> returnValue = new List<UIElement>();
             foreach (XmlNode elementNode in aElementNodes)
@@ -247,13 +213,20 @@ namespace IndieGame.Common
                 }
 
                 UIElement element = CreateElement(xmlElement);
-                if(element == null)
+                if (element == null)
                 {
                     Debug.WriteLine("Failed to create element");
                     continue;
                 }
 
-                element.AddElements(ParseElements(elementNode.ChildNodes));
+                var children = ParseElements(elementNode.ChildNodes);
+                if(children != null)
+                {
+                    Debug.WriteLine("Adding " + children.Count + " children to element");
+                    element.AddElements(children);
+                }
+
+                returnValue.Add(element);
             }
 
             return returnValue;
@@ -263,15 +236,13 @@ namespace IndieGame.Common
         {
             AttributeTable attributes = ParseElementAttributes(aXmlElement);
 
-            string name = XMLConvert.ParseString(attributes["name"]);
+            string entryName = XMLConvert.ParseString(attributes["name"]);
             string texture = XMLConvert.ParseString(attributes["texture"]);
             Vector2 position = XMLConvert.ParseVector2(attributes["position"]);
-            Vector2 scale = XMLConvert.ParseVector2(attributes["size"]);
+            Vector2 scale = XMLConvert.ParseVector2(attributes["scale"]);
             Color color = XMLConvert.ParseColor(attributes["color"]);
 
-            Debug.WriteLine("Element: " + name + " " + texture + " " + position + " " + color);
-
-            return UIElement.CreateElement(texture, position, scale);
+            return UIElement.CreateElement(entryName, texture, position, scale, color);
         }
 
         private static AttributeTable ParseElementAttributes(XmlElement element)
@@ -286,6 +257,109 @@ namespace IndieGame.Common
             }
             
             return attributes;
+        }
+
+        //public static Vector2 ParseScale(string aAttribute, UIElement aParent)
+        //{
+        //    float ParseComponent(string aComponent, UIElement aParent)
+        //    {
+        //        bool success = float.TryParse(aComponent, out float result);
+        //        if (success)
+        //        {
+        //            return result;
+        //        }
+
+        //        if (aComponent.Contains("parent"))
+        //        {
+        //            var split = aComponent.Split('.');
+        //            if (split.Length != 2)
+        //            {
+        //                Debug.WriteLine("Failed to parse window: " + aComponent);
+        //                throw new FormatException("Invalid window format.");
+        //            }
+
+        //            var resolution = split[1];
+
+        //            if(resolution == "width")
+        //            {
+        //                return aParent.Scale.X;
+        //            }
+
+        //            if (resolution == "height")
+        //            {
+        //                return aParent.Scale                  }
+        //        }
+
+        //        throw new NotImplementedException();
+        //    }
+
+        //    if (string.IsNullOrEmpty(aAttribute))
+        //    {
+        //        return Vector2.Zero;
+        //    }
+
+        //    string[] compontents = aAttribute.Split(',');
+
+        //    if (compontents.Length != 2)
+        //    {
+        //        throw new FormatException("Invalid size format.");
+        //    }
+
+        //    return new Vector2(ParseComponent(compontents[0]), ParseComponent(compontents[1]));
+        //}
+
+        public Vector2 ParseSize(string aAttribute)
+        {
+            float ParseComponent(string aComponent)
+            {
+                bool success = float.TryParse(aAttribute, out float result);
+                if (success)
+                {
+                    return result;
+                } 
+
+                if (aComponent.Contains("window"))
+                {
+                    var split = aComponent.Split('.');
+                    if (split.Length != 2)
+                    {
+                        Debug.WriteLine("Failed to parse window: " + aComponent);
+                        throw new FormatException("Invalid window format.");
+                    }
+
+                    var resolution = split[1];
+                    if (resolution == "width")
+                    {
+                        return m_Viewport.Width;
+                    }
+                    else if (resolution == "height")
+                    {
+                        return m_Viewport.Width;
+                    }
+                }
+                else if (aComponent.Contains("parent"))
+                {
+                    
+                }
+
+                return 0.0f;
+            }
+
+            if (string.IsNullOrEmpty(aAttribute))
+            {
+                return Vector2.Zero;
+            }
+
+            aAttribute = aAttribute.Trim('{', '}'); // Remove curly braces
+
+            string[] compontents = aAttribute.Split(',');
+
+            if (compontents.Length != 2)
+            {
+                throw new FormatException("Invalid size format.");
+            }
+
+            return new Vector2(ParseComponent(compontents[0]), ParseComponent(compontents[1]));
         }
     }
 }

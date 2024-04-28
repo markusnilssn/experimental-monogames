@@ -84,29 +84,27 @@ namespace IndieGame
             m_Engine.AddComponent(m_Entity, sprite);
 
             // Camera
-            m_Engine.RegisterSystem<CameraSystem>();
+            m_Engine.RegisterSystem<CameraSystem>(GraphicsDevice.Viewport);
             
             m_MainCamera = m_Engine.CreateEntity();
 
             m_Engine.AddComponent(m_MainCamera, Transform.CreateTransform(Vector2.Zero, 0.0f, Vector2.One));
-            m_Engine.AddComponent(m_MainCamera, Camera.CreateCamera(new Vector2(m_WindowWidth, m_WindowHeight), 5.0f, new Vector3(1, 1, 0)));
+            m_Engine.AddComponent(m_MainCamera, Camera.CreateCamera(new Vector2(m_WindowWidth, m_WindowHeight), 1));
 
             // Surface
             m_Surface = new Surface();
 
             m_SpriteFont = ResourceManager.Load<SpriteFont>("default");
 
-            //var assetFolder = ResourceManager.GetAssetFolder();
-            //var filePath = Path.Combine(assetFolder, "WindowLayout.xml");
+            var assetFolder = ResourceManager.GetAssetFolder();
+            var filePath = Path.Combine(assetFolder, "WindowLayout.xml");
 
-            //m_Document = new UIDocument(filePath, m_Graphics);
-            //Debug.WriteLine("Element Size:" + m_Document.ElementCount);
-            //foreach (var item in m_Document.GetElements())
-            //{
-            //    Debug.WriteLine("item:" + item.Name);
-            //}
-
-
+            m_Document = new UIDocument(filePath, GraphicsDevice.Viewport);
+            Debug.WriteLine("Element Size:" + m_Document.ElementCount);
+            foreach (var item in m_Document.GetElements())
+            {
+                Debug.WriteLine("item:" + item.Name);
+            }
 
             base.Initialize();
         }
@@ -175,7 +173,6 @@ namespace IndieGame
                                 null, null, null, null,
                                 mainCamera.ViewMatrix);
 
-
             m_Engine.Render(m_SpriteBatch);
             m_SpriteBatch.End();
 
@@ -184,6 +181,7 @@ namespace IndieGame
             var framesPerSeconds = string.Format("FPS: {0}", (int)m_FrameCounter.AverageFramesPerSecond);
             m_SpriteBatch.DrawString(m_SpriteFont, framesPerSeconds, Vector2.Zero, Color.White);
 
+            m_Document.Render(m_SpriteBatch);
             m_Surface.Render(m_SpriteBatch);
             m_SpriteBatch.End();
 

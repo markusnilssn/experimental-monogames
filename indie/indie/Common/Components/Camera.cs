@@ -12,19 +12,19 @@ namespace IndieGame.Common
     {
         public Matrix ViewMatrix { get; set; }
         public Vector2 Dimentions { get; set; }
-        public float Speed { get; set; }
-        public Vector3 Zoom { get; set; }
+        public float Zoom { get; set; }
 
-        public Camera(Vector2 aDimentions, float aSpeed, Vector3 aZoom)
+        public Vector2 Position;
+
+        public Camera(Vector2 aDimentions, float aZoom)
         {
             Dimentions = aDimentions;
-            Speed = aSpeed;
             Zoom = aZoom;
         }
 
-        public static Camera CreateCamera(Vector2 aDimentions, float aSpeed, Vector3 aZoom)
+        public static Camera CreateCamera(Vector2 aDimentions, float aZoom)
         {
-            return new Camera(aDimentions, aSpeed, aZoom);
+            return new Camera(aDimentions, aZoom);
         }
     }
 }
